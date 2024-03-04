@@ -26,13 +26,38 @@ namespace WpfApp1
     /// </summary>
     public partial class MainWindow : Window
     {
-
-        bool IsReserved(string tokenName) => Enum.GetNames(typeof(Initiator)).Contains(StringExtension.Capitalize(tokenName));
-
         public MainWindow()
         {
             InitializeComponent();
         }
+
+
+        bool IsReserved(string tokenName) => Enum.GetNames(typeof(Initiator)).Contains(StringExtension.Capitalize(tokenName));
+        public Dictionary<string, string> helpMessages =
+        new(){
+            {
+                "default",
+                $"  The following commands can be used:" + '\n' +
+                $"\t{ string.Join(", ", Enum.GetNames<Initiator>()).Replace("quest", "?").ToLower() }" + '\n' +
+                $"  For help with a specific command, type command name after '?'." + '\n' +
+                $"  Example: '? ping' - displays information about the 'ping' token"
+
+            },
+            {
+                "ping", 
+                "  ping [Uri] [Count?]" + '\n' +
+                "  Sends a GET request to the specified Uri, and displays the request's status. " + '\n' +
+                "  Optional Count token specifies how many requests should be sent. Count must be less than or equal to 10. Default: 1" + '\n' +
+                "  Examples:" + '\n' +
+                "\tping google.com" + '\n' +
+                "\tping https://yahoo.com" + '\n' +
+                "\tping https://youtube.com 5"
+            },
+            {
+                "weevil",
+                "  Displays ASCII art of an acorn weevil."
+            }
+        };
 
         private void KeyHandler(object sender, KeyEventArgs e)
         {
@@ -47,9 +72,7 @@ namespace WpfApp1
         private void MessageHandler(string message)
         {
             //remove excess whitespace
-            message.Trim();
-            Regex regex = new Regex("[ ]{2,}");
-            regex.Replace(message, " ");
+            message = StringExtension.FormatTokenChain(message);
             string[] split = message.Split(' ');
 
             List<Token> tokenList = new();
@@ -58,7 +81,7 @@ namespace WpfApp1
                 if (IsReserved(s))
                 {
                     tokenList.Add(new ReservedToken(StringExtension.Capitalize(s)));
-                } else if (message == "?")
+                } else if (s == "?")
                 {
                     tokenList.Add(new ReservedToken(Initiator.quest));
                 }
@@ -83,50 +106,80 @@ namespace WpfApp1
             {
 
                 case Initiator.Ping:
-                    if (tokens.Count < 2)
+                    if (tokens.Count == 1)
                     {
                         PushMessage("Must specify address");
                         return;
                     };
-                    RawToken? token = (RawToken)tokens.ElementAt(1)??null;
-                    for (int pingNumber = 0; pingNumber < 5; pingNumber++)
+                    int? pingCount;
+                    try
+                    {
+                        pingCount = int.Parse((string)tokens[2].Data);
+                        if(pingCount < 0)
+                        {
+                            PushMessage("Ping amount must be positive integer");
+                            return;
+                        }
+                        if(pingCount > 10)
+                        {
+                            PushMessage("Ping amount must be less than or equal to 10");
+                            return;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        pingCount = null;
+                    }
+                    RawToken addressToken = (RawToken)tokens.ElementAt(1);
+                    for (int pingNumber = 0; pingNumber < (pingCount??1); pingNumber++)
                     {
                         HttpClient client = new HttpClient();
                         try
                         {
                             var checkingResponse = await client.GetAsync(
-                                token.Data.ToString()!.Contains("http") ?
-                                token.Data.ToString() :
-                                "http://" + token.Data.ToString()
+                                addressToken.Data.ToString()!.Contains("http") ?
+                                (string)addressToken.Data :
+                                "http://" + addressToken.Data
                             );
                             if (checkingResponse.IsSuccessStatusCode)
                             {
-                                PushMessage($"{token.RawAddress} responded with {checkingResponse.StatusCode}");
+                                PushMessage($"{addressToken.RawAddress} responded with {checkingResponse.StatusCode}");
                             }
                             else
                             {
-                                PushMessage($"Failed to ping {token.RawAddress}");
+                                PushMessage($"Failed to ping {addressToken.RawAddress}");
                             }
                         }
-                        catch (Exception)
+                        catch (HttpRequestException)
                         {
-                            PushMessage($"Error");
+                            PushMessage("Address unreachable");
                         }
-
                     }
                     break;
 
-                case Initiator.Cow:
-                    PushMessage("           __n__n__\r\n    .------`-\\00/-'\r\n   /  ##  ## (oo)\r\n  / \\## __   ./\r\n     |//YY \\|/\r\n     |||   |||");
-                    break;
 
+                case Initiator.Weevil:
+                    PushMessage("\r\n                                       .-\r\n                        ..-=+-:--::     -:\r\n                   ..:..:--:--=*-=-==: .++.\r\n                  .:::  ::::::=::+@@##-=%%:\r\n                 .  ....:-=:--=%%%@%@@=%@@  :.\r\n                ..::::::-=+++=+%%**%@@+##:.+#%+\r\n                 .:-::-=+###%###@@%#*@*+.-*# -@#\r\n              ==-:--++==+*%@@#@%@@@@%@%%%@%=  *@=\r\n              .:--*++=--+%@@@@@@%@%@@%@@@#--   -@:\r\n              .+.:+*@#*++@@@@@@%#@@@@@@%.       +@:\r\n               *#:-+#@@+=@%%@@%%@@@@@@=          %@:\r\n               .@*.-=#*#=%%@@#%#*#@%*+.:.  ..    +%*\r\n                -- .-+:+=##@##%@@%##*###+++--=+@+ :---=-.\r\n             .::   .##-..++.(¤).:      .-==*+.=@+     .%#=-\r\n            ...-+#%#.(¤).+# ::                *%\r\n         +*--++=-::-**-. -@=.                 -@\r\n         :@+  ..:=+#%-...-@%                  -@:\r\n          .#*+. -*%*      *@:                 :@:\r\n           :- =#%%-        %%                 :@:\r\n          :.-=%#*.         .@=                :%:\r\n         -.=*#%@=           =@-               =@:\r\n       .:   .-#@@@:          *@:              -@+\r\n      :.        :%##+-        *@.               :*+\r\n     -           : .-*%#+-...  -.                .+#-.\r\n   --          :*:     :-+#@+                     :=+-\r\n  =*         ::..          =*                       .\r\n  .                        :+\r\n                           -%\r\n                          +*-\r\n                         +");
+                    break;
                 case Initiator.quest:
-                    PushMessage("helpmessage");
+                    if (tokens.Count == 1)
+                    {
+                        PushMessage(helpMessages["default"]);
+                        return;
+                    }
+                    string key = tokens[1].Data.ToString()!.ToLower();
+                    if (helpMessages.ContainsKey(key))
+                    {
+                        PushMessage(helpMessages[key]);
+                        return;
+                    }
+                    PushMessage($"Token '{key}' does not exist.");
                     break;
 
                 default:
                     break;
             }
+
         }
 
         private void PushMessage(string message)

@@ -15,8 +15,8 @@
         <ScrollViewer x:Name="scroller">
             <TextBlock x:Name="main" Grid.Row="0" Foreground="White" Background="Black" FontFamily="Courier New" Padding="0" TextWrapping="WrapWithOverflow">></TextBlock>
         </ScrollViewer>
-        <TextBox x:Name="input" Grid.Row="1" BorderThickness="0 0.5 0 0" Foreground="White" Background="Black" FontFamily="Courier New" KeyDown="KeyHandler">
-            ping
+        <TextBox x:Name="input" Grid.Row="1" BorderThickness="0 2 0 2" Foreground="White" Background="Black" FontFamily="Courier New" KeyDown="KeyHandler">
+            
         </TextBox>
     </Grid>
 </Window>

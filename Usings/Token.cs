@@ -12,10 +12,9 @@ namespace Usings
 
     public enum Initiator
     {
-        Ping,
-        Cow,
         quest,
-
+        Ping,
+        Weevil,
     }
     
     public abstract class Token
@@ -25,7 +24,17 @@ namespace Usings
 
     public class ReservedToken : Token
     {
-        public override object Data { get; protected set; }
+        public Initiator data;
+        public override object Data {
+            get
+            {
+                return this.data;
+            } 
+            protected set
+            {
+                this.data = (Initiator)value;
+            }
+        }
         public ReservedToken(string data)
         {
             this.Data = (Initiator)Enum.Parse<Initiator>(StringExtension.Capitalize(data));
@@ -38,7 +47,15 @@ namespace Usings
 
     public class RawToken : Token
     {
-        public override object Data { get; protected set; }
+        public string? data;
+        public override object Data { 
+            get {
+                return data??"";
+            } 
+            protected set {
+                data = (string)value;
+            } 
+        }
         public RawToken(string data) => this.Data = data;
         public RawToken() => this.Data = string.Empty;
         public string RawAddress
