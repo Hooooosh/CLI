@@ -18,6 +18,8 @@ using System.Net.Http;
 using System.Security.Policy;
 using System.Linq;
 using System;
+using Microsoft.Win32;
+using System.IO;
 
 namespace WpfApp1
 {
@@ -31,14 +33,15 @@ namespace WpfApp1
             InitializeComponent();
         }
 
+        private DirectoryHandler currentDirectory = new DirectoryHandler(Environment.CurrentDirectory);
 
-        bool IsReserved(string tokenName) => Enum.GetNames(typeof(Initiator)).Contains(StringExtension.Capitalize(tokenName));
+        public bool IsReserved(string tokenName) => Enum.GetNames(typeof(Initiator)).Contains(StringExtension.Capitalize(tokenName));
         public Dictionary<string, string> helpMessages =
         new(){
             {
                 "default",
                 $"  The following commands can be used:" + '\n' +
-                $"\t{ string.Join(", ", Enum.GetNames<Initiator>()).Replace("quest", "?").ToLower() }" + '\n' +
+                $"\t{ string.Join(", ", Enum.GetNames<Initiator>()).Replace(Usings.Initiator.QuestionMark.ToString() , "?").ToLower() }" + '\n' +
                 $"  For help with a specific command, type command name after '?'." + '\n' +
                 $"  Example: '? ping' - displays information about the 'ping' token"
 
@@ -64,7 +67,7 @@ namespace WpfApp1
             if(e.Key == Key.Enter)
             {
                 MessageHandler(input.Text);
-                input.Text = "";
+                input.Text = $"{currentDirectory} >";
                 scroller.ScrollToBottom();
             }
         }
@@ -83,7 +86,7 @@ namespace WpfApp1
                     tokenList.Add(new ReservedToken(StringExtension.Capitalize(s)));
                 } else if (s == "?")
                 {
-                    tokenList.Add(new ReservedToken(Initiator.quest));
+                    tokenList.Add(new ReservedToken(Initiator.QuestionMark));
                 }
                 else
                 {
@@ -91,14 +94,18 @@ namespace WpfApp1
                 }
             }
 
-            PushMessage($"> {message}");
+            PushMessage($"{message}");
             RunTokenSequence(tokenList);
 
         }
 
         private async void RunTokenSequence(List<Token> tokens)
         {
-            if (tokens.First() is not ReservedToken) return;
+            if (tokens.First() is not ReservedToken)
+            {
+                PushMessage($"Unrecognized token: '{tokens.First().Data}'");
+                return;
+            }
            
             Initiator initiator = (Initiator)tokens[0].Data;
 
@@ -141,7 +148,7 @@ namespace WpfApp1
                                 (string)addressToken.Data :
                                 "http://" + addressToken.Data
                             );
-                            if (checkingResponse.IsSuccessStatusCode)
+                            if (checkingResponse.IsSuccessStatusCode && checkingResponse != null)
                             {
                                 PushMessage($"{addressToken.RawAddress} responded with {checkingResponse.StatusCode}");
                             }
@@ -161,7 +168,7 @@ namespace WpfApp1
                 case Initiator.Weevil:
                     PushMessage("\r\n                                       .-\r\n                        ..-=+-:--::     -:\r\n                   ..:..:--:--=*-=-==: .++.\r\n                  .:::  ::::::=::+@@##-=%%:\r\n                 .  ....:-=:--=%%%@%@@=%@@  :.\r\n                ..::::::-=+++=+%%**%@@+##:.+#%+\r\n                 .:-::-=+###%###@@%#*@*+.-*# -@#\r\n              ==-:--++==+*%@@#@%@@@@%@%%%@%=  *@=\r\n              .:--*++=--+%@@@@@@%@%@@%@@@#--   -@:\r\n              .+.:+*@#*++@@@@@@%#@@@@@@%.       +@:\r\n               *#:-+#@@+=@%%@@%%@@@@@@=          %@:\r\n               .@*.-=#*#=%%@@#%#*#@%*+.:.  ..    +%*\r\n                -- .-+:+=##@##%@@%##*###+++--=+@+ :---=-.\r\n             .::   .##-..++.(¤).:      .-==*+.=@+     .%#=-\r\n            ...-+#%#.(¤).+# ::                *%\r\n         +*--++=-::-**-. -@=.                 -@\r\n         :@+  ..:=+#%-...-@%                  -@:\r\n          .#*+. -*%*      *@:                 :@:\r\n           :- =#%%-        %%                 :@:\r\n          :.-=%#*.         .@=                :%:\r\n         -.=*#%@=           =@-               =@:\r\n       .:   .-#@@@:          *@:              -@+\r\n      :.        :%##+-        *@.               :*+\r\n     -           : .-*%#+-...  -.                .+#-.\r\n   --          :*:     :-+#@+                     :=+-\r\n  =*         ::..          =*                       .\r\n  .                        :+\r\n                           -%\r\n                          +*-\r\n                         +");
                     break;
-                case Initiator.quest:
+                case Initiator.QuestionMark:
                     if (tokens.Count == 1)
                     {
                         PushMessage(helpMessages["default"]);
@@ -174,6 +181,18 @@ namespace WpfApp1
                         return;
                     }
                     PushMessage($"Token '{key}' does not exist.");
+                    break;
+
+                case Initiator.Cd:
+
+                    if(tokens.Count == 1)
+                    {
+                        currentDirectory.Path = new DirectoryInfo(Environment.CurrentDirectory);
+                        break;
+                    } else if(tokens.Count == 2)
+                    {
+                        currentDirectory.MoveIn(tokens.ElementAt(2).Data.ToString()??"");
+                    }
                     break;
 
                 default:

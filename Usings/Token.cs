@@ -12,9 +12,10 @@ namespace Usings
 
     public enum Initiator
     {
-        quest,
+        QuestionMark,
         Ping,
         Weevil,
+        Cd
     }
     
     public abstract class Token
@@ -37,7 +38,7 @@ namespace Usings
         }
         public ReservedToken(string data)
         {
-            this.Data = (Initiator)Enum.Parse<Initiator>(StringExtension.Capitalize(data));
+            this.Data = Enum.Parse<Initiator>(StringExtension.Capitalize(data));
         }
         public ReservedToken(Initiator init)
         {
