@@ -1,24 +1,7 @@
-﻿using System.Net.Mime;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
+﻿using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using static System.Net.WebRequestMethods;
 using Usings;
-using System.Reflection.Metadata;
-using System.Net;
 using System.Net.Http;
-using System.Security.Policy;
-using System.Linq;
-using System;
-using Microsoft.Win32;
 using System.IO;
 
 namespace WpfApp1
@@ -31,7 +14,10 @@ namespace WpfApp1
         public MainWindow()
         {
             InitializeComponent();
+            Prefix.Text = currentDirectory.Path + ">";
         }
+
+        private List<string> messageQueue = new List<string>();
 
         private DirectoryHandler currentDirectory = new DirectoryHandler(Environment.CurrentDirectory);
 
@@ -64,20 +50,55 @@ namespace WpfApp1
 
         private void KeyHandler(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            string message = InputField.Text ;
+            if (message.Trim() == string.Empty) return;
+            switch (e.Key)
             {
-                MessageHandler(input.Text);
-                input.Text = $"{currentDirectory} >";
-                scroller.ScrollToBottom();
+                case Key.Enter:
+                    MessageHandler(message);
+
+                    messageQueue.Add(message);
+                    if (messageQueue.Count > 10) 
+                        messageQueue.RemoveAt(0);
+                    PushMessage($"{message} added. messageQueue: {string.Join(',', messageQueue)}");
+
+                    Scroller.ScrollToBottom();
+                    break;
+                case Key.Up:
+                    if (messageQueue.Contains(message))
+                    {
+                        if(messageQueue.IndexOf(message) > 0) 
+                            InputField.Text = messageQueue.ElementAt(messageQueue.IndexOf(message) - 1);
+                    }
+                    else if(messageQueue.Count > 0)
+                    {
+                        InputField.Text = messageQueue.Last();
+                    }
+                    break;
+                case Key.Down:
+                    if (messageQueue.Contains(message))
+                    {
+                        if (messageQueue.IndexOf(message) < messageQueue.Count - 1)
+                            InputField.Text = messageQueue.ElementAt(messageQueue.IndexOf(message) + 1);
+                        else
+                            InputField.Text = string.Empty;
+                    }
+                    else if (messageQueue.Count > 0)
+                    {
+                        InputField.Text = string.Empty;
+                    }
+                    break;
+                default:
+                    break;
             }
+            InputField.Text = InputField.Text.Trim();
         }
 
         private void MessageHandler(string message)
         {
-            //remove excess whitespace
             message = StringExtension.FormatTokenChain(message);
             string[] split = message.Split(' ');
-
+            if (message == string.Empty) return;
             List<Token> tokenList = new();
             foreach (string s in split)
             {
@@ -96,6 +117,9 @@ namespace WpfApp1
 
             PushMessage($"{message}");
             RunTokenSequence(tokenList);
+
+            Prefix.Text = currentDirectory.Path + ">";
+            InputField.Text = "";
 
         }
 
@@ -203,7 +227,17 @@ namespace WpfApp1
 
         private void PushMessage(string message)
         {
-            main.Text += '\n' + message;
+            Main.Text += $"\n{message}";
+        }
+
+        private void AddExtraSpaceIfContentIsEmpty(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            _AddExtraSpaceIfContentIsEmpty();
+        }
+
+        private void _AddExtraSpaceIfContentIsEmpty()
+        {
+            if (InputField.Text == " ") InputField.Text = "asd";
         }
     }
 }

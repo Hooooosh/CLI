@@ -5,21 +5,25 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp1"
         mc:Ignorable="d"
+        PreviewKeyDown="KeyHandler"
         Title="MainWindow" Height="450" Width="800" FontSize="15px" Background="Black" >
     <Grid Margin="5px">
         <Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
+            <RowDefinition Height="*"/>
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
 
-        <ScrollViewer x:Name="scroller">
-            <TextBlock x:Name="main" Grid.Row="0" Background="Black" FontFamily="Courier New" Padding="0" TextWrapping="WrapWithOverflow"></TextBlock>
+        <ScrollViewer x:Name="Scroller" Grid.Row="0" VerticalScrollBarVisibility="Auto" Grid.ColumnSpan="2">
+            <TextBlock x:Name="Main" Grid.Row="0" Background="Black"  Foreground="White" FontFamily="Courier New" Padding="0" TextWrapping="WrapWithOverflow"></TextBlock>
         </ScrollViewer>
 
-        <TextBlock x:Name="input" Background="Black" FontFamily="Courier New" Foreground="White" KeyDown="KeyHandler" TextWrapping="Wrap">
-            <TextBlock Foreground="White">></TextBlock>
-            <TextBlock Foreground="White"></TextBlock>
-        </TextBlock>
-            
+        <TextBlock x:Name="Prefix" Foreground="White" Grid.Column="0" Grid.Row="1"></TextBlock>
+
+        <TextBox Foreground="White" Grid.Column="1" Grid.Row="1" Background="Black" x:Name="InputField" HorizontalAlignment="Stretch"  MinHeight="25" VerticalContentAlignment="Center" BorderThickness="0" TextChanged="AddExtraSpaceIfContentIsEmpty"></TextBox>
+
     </Grid>
 </Window>
