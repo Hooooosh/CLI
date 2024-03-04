@@ -23,7 +23,7 @@
 
         <TextBlock x:Name="Prefix" Foreground="White" Grid.Column="0" Grid.Row="1"></TextBlock>
 
-        <TextBox Foreground="White" Grid.Column="1" Grid.Row="1" Background="Black" x:Name="InputField" HorizontalAlignment="Stretch"  MinHeight="25" VerticalContentAlignment="Center" BorderThickness="0" TextChanged="AddExtraSpaceIfContentIsEmpty"></TextBox>
+        <TextBox Foreground="White" Grid.Column="1" Grid.Row="1" Background="Black" x:Name="InputField" HorizontalAlignment="Stretch"  MinHeight="25" VerticalContentAlignment="Center" BorderThickness="0" ></TextBox>
 
     </Grid>
 </Window>

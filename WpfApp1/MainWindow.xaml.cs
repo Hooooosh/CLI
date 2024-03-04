@@ -16,9 +16,9 @@ namespace WpfApp1
             InitializeComponent();
             Prefix.Text = currentDirectory.Path + ">";
         }
-
+        /*
         private List<string> messageQueue = new List<string>();
-
+        */
         private DirectoryHandler currentDirectory = new DirectoryHandler(Environment.CurrentDirectory);
 
         public bool IsReserved(string tokenName) => Enum.GetNames(typeof(Initiator)).Contains(StringExtension.Capitalize(tokenName));
@@ -56,14 +56,15 @@ namespace WpfApp1
             {
                 case Key.Enter:
                     MessageHandler(message);
-
+                    /*
                     messageQueue.Add(message);
                     if (messageQueue.Count > 10) 
                         messageQueue.RemoveAt(0);
                     PushMessage($"{message} added. messageQueue: {string.Join(',', messageQueue)}");
-
+                    */
                     Scroller.ScrollToBottom();
                     break;
+                    /*
                 case Key.Up:
                     if (messageQueue.Contains(message))
                     {
@@ -88,6 +89,7 @@ namespace WpfApp1
                         InputField.Text = string.Empty;
                     }
                     break;
+                    */
                 default:
                     break;
             }
@@ -99,6 +101,7 @@ namespace WpfApp1
             message = StringExtension.FormatTokenChain(message);
             string[] split = message.Split(' ');
             if (message == string.Empty) return;
+
             List<Token> tokenList = new();
             foreach (string s in split)
             {
@@ -120,7 +123,6 @@ namespace WpfApp1
 
             Prefix.Text = currentDirectory.Path + ">";
             InputField.Text = "";
-
         }
 
         private async void RunTokenSequence(List<Token> tokens)
@@ -208,7 +210,6 @@ namespace WpfApp1
                     break;
 
                 case Initiator.Cd:
-
                     if(tokens.Count == 1)
                     {
                         currentDirectory.Path = new DirectoryInfo(Environment.CurrentDirectory);
@@ -228,16 +229,6 @@ namespace WpfApp1
         private void PushMessage(string message)
         {
             Main.Text += $"\n{message}";
-        }
-
-        private void AddExtraSpaceIfContentIsEmpty(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            _AddExtraSpaceIfContentIsEmpty();
-        }
-
-        private void _AddExtraSpaceIfContentIsEmpty()
-        {
-            if (InputField.Text == " ") InputField.Text = "asd";
         }
     }
 }

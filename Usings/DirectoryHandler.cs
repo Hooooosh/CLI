@@ -39,8 +39,7 @@ namespace Usings
             }
             catch (Exception)
             {
-
-                throw;
+                throw new ArgumentOutOfRangeException();
             }
         }
 
@@ -48,14 +47,28 @@ namespace Usings
         {
             try
             {
-                string toSetPath = directoryName + $"/{directoryName}";
-                if (Directory.Exists(toSetPath)) {
-                    path = new DirectoryInfo(toSetPath);
+                //remove '.' until none left
+                while (directoryName.Contains('.'))
+                {
+                    MoveBack();
+                    directoryName.Remove(0, 1);
+                }
+                if (directoryName.Contains(':'))
+                {
+                    string toSetPath = directoryName;
+                    if (Directory.Exists(toSetPath)) {
+                        path = new DirectoryInfo(toSetPath);
+                    }
+                }
+                else
+                {
+                    string toSetPath = Path + $"/{directoryName}";
+
                 }
             }
             catch (Exception)
             {
-                throw new ArgumentException("Bad path");
+                throw new ArgumentException();
             }
         }
 
